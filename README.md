@@ -1,38 +1,26 @@
-# Project Management System (PMS) API using NestJs
+# Project Management System API
 
 ## Prerequisites
 - docker
+- make (optional, but the following steps expect you to have make)
 
 ## Development Environment
-Step 1. To start the dev env, run the following command:
+**Step 1.** The following command performs 3 tasks:
+1. copy `.env.example` as `.env` (if not found) (keep it unchanged for the dev env)
+2. builds docker containers (see `docker-compose.yml`)
+3. runs the node setup script (see `./docker/node/setup.sh`)
 ```sh
-docker compose up -d
+make setup
 ```
 
-Step 2. To complete the setup, we need to install the dependencies of the node app and generate client output for Prisma inside the container:
+**Step 2.** Start the docker containers and the Nest server ([http://localhost:3000](http://localhost:3000)):
 ```sh
-docker compose exec node sh
-# executed inside container from here on
-./docker/node/setup.sh
+make up
 ```
 
-Step 3. Once the setup is done, you can start the Nest application in the same container by:
-```sh
-pnpm run start:dev 
-# or `pnpm run start` if you don't want watch mode
-```
-
-### Stopping the containers
-Once you are done, use the following command on the host to stop and remove the containers:
-```sh
-docker compose down
-```
-
-### Need to rebuild the image?
-If you edit the Dockerfile or want to rebuild for some reason, then you can run the following command on the host without manually removing the old builds:
-```sh
-docker compose up --build -d
-```
+### Additional commands
+- `make down`: Stop and remove the containers
+- `make shell`: Puts you inside the node container to run commands
 
 ### MySQL and Redis Data
-For persistence, the MySQL and Redis data is mounted in the container from `./docker/mysql/data` and `./docker/redis/data` respectively. See `docker-compose.yml` for exact details.
+For persistence, the MySQL and Redis data is mounted in the container from `./docker/mysql/data` and `./docker/redis/data` respectively. See `docker-compose.yml` for more details.

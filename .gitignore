@@ -55,8 +55,6 @@ pids
 *.seed
 *.pid.lock
 
-.pnpm-store/
-prisma/migrations/
 prisma/generated/
 docker/*/data
 

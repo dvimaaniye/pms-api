@@ -6,13 +6,17 @@ services:
     container_name: pms-node
     ports:
       - "3000:3000"
-      - "5555:5555"
     volumes:
       - ./:/home/app/
     tty: true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   mysql:
-    build: 
+    build:
       context: ./docker/mysql/
       dockerfile: mysql.Dockerfile
     container_name: pms-mysql
@@ -20,7 +24,26 @@ services:
       - "3306:3306"
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
-    env_file: ./docker/mysql/.env.mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p$$MYSQL_ROOT_PASSWORD",
+        ]
+      interval: 2s
+      timeout: 20s
+      retries: 10
     restart: always
 
   redis:
@@ -31,10 +54,12 @@ services:
     volumes:
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - ./docker/redis/data:/data
-    env_file: ./docker/redis/.env.redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     restart: always
-    command: [
-      "redis-server",
-      "/usr/local/etc/redis/redis.conf",
-      "--requirepass ${REDIS_PASSWORD}"
-    ]
+    command:
+      [
+        "redis-server",
+        "/usr/local/etc/redis/redis.conf",
+        "--requirepass ${REDIS_PASSWORD}",
+      ]

@@ -1,4 +1,4 @@
 #!/bin/sh
 
-pnpm install --frozen-lockfile
-pnpm run prisma:dev --name init
+npm install
+npm run prisma:dev --name init || echo "You have probably already migrated."
