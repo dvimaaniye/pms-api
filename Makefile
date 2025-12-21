@@ -2,8 +2,8 @@
 
 setup:
 	@if [ ! -f .env ]; then cp .env.example .env; echo "Copied .env.example to .env"; fi
-	@docker compose --build
-	@echo "Services built. Running initial setup..."
+	@docker compose up -d --build
+	@echo "Services started. Running initial setup..."
 	@docker compose exec -T node /bin/sh /home/app/docker/node/setup.sh
 	@echo "Setup done."
 
