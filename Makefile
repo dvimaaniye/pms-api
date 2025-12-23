@@ -9,10 +9,11 @@ setup:
 
 up:
 	@docker compose up -d
-	@docker compose exec node /bin/sh -c "npm run start:dev"
+	@docker compose exec node sh -c "npm run start:dev"
 
 down:
 	@docker compose down
 
+s ?= node
 shell:
-	@docker compose exec node sh
+	@docker compose exec $(s) sh

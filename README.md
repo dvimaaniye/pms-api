@@ -21,6 +21,7 @@ make up
 ### Additional commands
 - `make down`: Stop and remove the containers
 - `make shell`: Puts you inside the node container to run commands
+- `make shell s=servicename`: Replace `servicename` with the name of the docker service where you to want to open the shell, e.g., `make shell s=mysql`
 
 ### MySQL and Redis Data
 For persistence, the MySQL and Redis data is mounted in the container from `./docker/mysql/data` and `./docker/redis/data` respectively. See `docker-compose.yml` for more details.
