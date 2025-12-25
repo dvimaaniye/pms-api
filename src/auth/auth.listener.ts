@@ -22,7 +22,5 @@ export class AuthListener {
 	}
 
 	@OnEvent(USER_DELETED_EVENT, { async: true })
-	async handleUserDeleted(event: UserDeletedEvent) {
-		await this.authService.signOut(event.request);
-	}
+	async handleUserDeleted(event: UserDeletedEvent) {}
 }

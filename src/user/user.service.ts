@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
+import { EventEmitter2 as EventEmitter } from '@nestjs/event-emitter';
 
 import { Prisma, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
@@ -7,6 +12,10 @@ import { PrismaService } from 'nestjs-prisma';
 import { HashService } from '@/hash/hash.service';
 
 import { CreateUserDto } from './dto';
+import {
+	USER_DELETED_EVENT,
+	UserDeletedEvent,
+} from './event/user-deleted.event';
 import { PublicUser } from './types';
 
 @Injectable()
@@ -17,6 +26,7 @@ export class UserService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly hashService: HashService,
+		private readonly eventEmitter: EventEmitter,
 	) {}
 
 	async create(user: CreateUserDto): Promise<PublicUser> {
@@ -37,7 +47,7 @@ export class UserService {
 		return users;
 	}
 
-	async findOne(id: PublicUser['id']): Promise<PublicUser | null> {
+	async findOne(id: User['id']): Promise<PublicUser | null> {
 		const user = await this.prisma.user.findUnique({
 			where: { id },
 			...this.publicUserConfig,
@@ -46,7 +56,7 @@ export class UserService {
 	}
 
 	async findOneAndSelect(
-		id: PublicUser['id'],
+		id: User['id'],
 		select: Omit<Prisma.UserSelect<DefaultArgs>, 'password'>,
 	) {
 		const user = await this.prisma.user.findUnique({
@@ -87,31 +97,68 @@ export class UserService {
 	}
 
 	async update(
-		id: PublicUser['id'],
-		userPatch: Prisma.UserUpdateInput,
+		id: User['id'],
+		data: Prisma.UserUpdateInput,
+		currentUser?: PublicUser | null,
 	): Promise<PublicUser> {
-		// If password is being updated, hash it first
-		if (userPatch.password && typeof userPatch.password === 'string') {
-			userPatch.password = await this.hashService.hash(userPatch.password);
+		currentUser = currentUser || (await this.findOne(id));
+		if (!currentUser) {
+			throw new NotFoundException(`User with ID ${id} not found`);
 		}
-
+		if (data.email && currentUser.email !== data.email) {
+			data.isEmailVerified = false;
+		}
+		// If password is being updated, hash it first
+		if (data.password && typeof data.password === 'string') {
+			data.password = await this.hashService.hash(data.password);
+		}
 		const user = await this.prisma.user.update({
 			where: { id },
-			data: userPatch,
+			data: data,
 			...this.publicUserConfig,
 		});
 		return user;
 	}
 
-	async delete(id: PublicUser['id']): Promise<PublicUser> {
+	async delete(id: User['id']): Promise<PublicUser> {
+		const userChecks = await this.prisma.user.findUnique({
+			where: { id },
+			select: {
+				_count: {
+					select: {
+						ownedOrganizations: true,
+						ownedProjects: true,
+					},
+				},
+			},
+		});
+
+		if (!userChecks) {
+			throw new NotFoundException(`User with ID ${id} not found`);
+		}
+
+		if (userChecks._count.ownedOrganizations > 0) {
+			throw new ConflictException(
+				'Cannot delete user. You must delete or transfer ownership of your Organizations first.',
+			);
+		}
+
+		if (userChecks._count.ownedProjects > 0) {
+			throw new ConflictException(
+				'Cannot delete user. You must delete or transfer ownership of your Projects first.',
+			);
+		}
+
 		const user = await this.prisma.user.delete({
 			where: { id },
 			...this.publicUserConfig,
 		});
+
+		this.eventEmitter.emit(USER_DELETED_EVENT, new UserDeletedEvent(user));
 		return user;
 	}
 
-	async exists(id: PublicUser['id']): Promise<boolean> {
+	async exists(id: User['id']): Promise<boolean> {
 		const user = await this.prisma.user.findUnique({
 			where: { id },
 			...this.userIdOnlyConfig,

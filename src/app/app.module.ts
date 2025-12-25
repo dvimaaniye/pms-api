@@ -7,7 +7,9 @@ import { AuthModule } from '@/auth/auth.module';
 import { CommonModule } from '@/common/common.module';
 import { REDIS_DATABASE } from '@/common/redis/redis.config';
 import { ConfigModule, config } from '@/config/config.module';
-// import { TaskModule } from '@/task/task.module';
+import { OrganizationModule } from '@/organization/organization.module';
+import { ProjectModule } from '@/project/project.module';
+import { TaskModule } from '@/task/task.module';
 import { UserModule } from '@/user/user.module';
 
 import { AppController } from './app.controller';
@@ -25,8 +27,10 @@ import { AppService } from './app.service';
 		}),
 		ScheduleModule.forRoot(),
 		EventEmitterModule.forRoot(),
-		// TaskModule,
 		UserModule,
+		OrganizationModule,
+		ProjectModule,
+		TaskModule,
 		AuthModule,
 	],
 	controllers: [AppController],

@@ -1,11 +1,5 @@
 import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import {
-	APP_FILTER,
-	APP_GUARD,
-	APP_INTERCEPTOR,
-	APP_PIPE,
-	HttpAdapterHost,
-} from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE, HttpAdapterHost } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { RequestHandler } from 'express';
@@ -17,12 +11,11 @@ import { config } from '@/config/config.module';
 
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import { prismaExceptionFilter } from './filters/prisma-exception.filter';
-// import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { GlobalThrottlerGuard } from './guards/throttle.guard';
 import { cookieMiddleware } from './middlewares/cookie.middleware';
 import { securityMiddleware } from './middlewares/security.middleware';
 import { SessionMiddleware } from './middlewares/session.middleware';
-import { globalValidationPipe } from './pipes/validation.pipe';
+import { globalValidationPipe } from './pipes/global-validation.pipe';
 import { RedisModule } from './redis/redis.module';
 
 @Global()
@@ -57,10 +50,6 @@ import { RedisModule } from './redis/redis.module';
 			provide: APP_PIPE,
 			useValue: globalValidationPipe,
 		},
-		// {
-		// 	provide: APP_INTERCEPTOR,
-		// 	useClass: LoggingInterceptor,
-		// },
 		{
 			provide: APP_GUARD,
 			useClass: GlobalThrottlerGuard,

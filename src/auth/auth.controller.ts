@@ -117,8 +117,11 @@ export class AuthController {
 	}
 
 	@Get('/check')
-	@UseGuards(SessionAuthGuard)
-	check() {
-		return { message: 'You have an active session' };
+	check(@Req() req: Request) {
+		return {
+			message: req.isAuthenticated()
+				? req.user.email
+				: 'You are not authenticated',
+		};
 	}
 }

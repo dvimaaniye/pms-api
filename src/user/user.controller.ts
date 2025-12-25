@@ -4,22 +4,13 @@ import {
 	Delete,
 	Get,
 	Patch,
-	Req,
 	UseGuards,
 } from '@nestjs/common';
-import { EventEmitter2 as EventEmitter } from '@nestjs/event-emitter';
 
-import { Prisma } from '@prisma/client';
-import { Request } from 'express';
-
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { SessionAuthGuard } from '@/common/guards/session-auth.guard';
 import { VerifiedSessionAuthGuard } from '@/common/guards/verified-session-auth.guard';
 
-import {
-	USER_DELETED_EVENT,
-	UserDeletedEvent,
-} from './event/user-deleted.event';
-import { PatchUserDto } from './types';
 import { PatchUserDto } from './dto';
 import { PublicUser } from './types';
 import { UserService } from './user.service';
@@ -27,53 +18,27 @@ import { UserService } from './user.service';
 @Controller('users')
 @UseGuards(SessionAuthGuard)
 export class UserController {
-	constructor(
-		private readonly userService: UserService,
-		private readonly eventEmitter: EventEmitter,
-	) {}
+	constructor(private readonly userService: UserService) {}
 
-	@Get('/profile')
-	getProfile(@Req() req: Request) {
-		return this.userService.findOne(req.user!.id);
+	@Get('/me')
+	getMe(@CurrentUser() user: PublicUser) {
+		return this.userService.findOne(user.id);
 	}
 
-	@Patch('/profile')
-	async patchUpdateProfile(@Req() req: Request, @Body() body: PatchUserDto) {
-		const patch: Prisma.UserUpdateInput = { ...body };
-
-		if (body.email !== req.user!.email) {
-			patch.isEmailVerified = false;
-		}
-
-		const updatedUser = await this.userService.update(req.user!.id, patch);
-
-		// Update the session data only if email was changed
-		if (updatedUser.email !== req.user!.email) {
-			req.user!.email = updatedUser.email;
-			req.user!.isEmailVerified = updatedUser.isEmailVerified;
-
-			// 	await new Promise((resolve, reject) => {
-			// 		req.session.save((err) =>
-			// 			err ? reject(err as Error) : resolve(undefined),
-			// 		);
-			// 	});
-		}
-
-		return updatedUser;
+	@Patch('/me')
+	updateMe(@CurrentUser() user: PublicUser, @Body() body: PatchUserDto) {
+		return this.userService.update(user.id, body);
 	}
 
-	@Delete('/profile')
-	async deleteProfile(@Req() req: Request) {
-		await this.userService.delete(req.user!.id);
-
-		this.eventEmitter.emit(USER_DELETED_EVENT, new UserDeletedEvent(req));
-
+	@Delete('/me')
+	async deleteMe(@CurrentUser() user: PublicUser) {
+		await this.userService.delete(user.id);
 		return { message: 'User deleted successfully' };
 	}
 
-	@Get('/check-email-verification')
+	@Get('/me/email-verification-status')
 	@UseGuards(VerifiedSessionAuthGuard)
-	checkEmailVerification() {
+	getEmailVerificationStatus() {
 		return { message: 'Your email is verified' };
 	}
 }
