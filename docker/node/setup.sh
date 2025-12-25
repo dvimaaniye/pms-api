@@ -1,4 +1,4 @@
 #!/bin/sh
 
 npm install
-npm run prisma:deploy || echo "You have probably already migrated."
+npm run prisma:dev

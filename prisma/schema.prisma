@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-    provider          = "mysql"
-    url               = env("DATABASE_URL")
-    shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+    provider = "mysql"
+    url      = env("DATABASE_URL")
 }
 
 model User {
@@ -28,11 +27,12 @@ model User {
     assignedTasks Task[] @relation("TaskAssignee")
     createdTasks  Task[] @relation("TaskCreator")
 
-    comments Comment[]
+    taskComments TaskComment[]
 
-    createdAt  DateTime  @default(now())
-    modifiedAt DateTime  @updatedAt
-    deletedAt  DateTime?
+    createdAt               DateTime                 @default(now())
+    modifiedAt              DateTime                 @updatedAt
+    deletedAt               DateTime?
+    organizationInvitations OrganizationInvitation[]
 
     @@map("user")
 }
@@ -44,13 +44,14 @@ model Organization {
     ownerId     String
     inviteCode  String  @unique
 
-    owner    User                 @relation("OrganizationOwner", fields: [ownerId], references: [id])
+    owner    User                 @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
     members  OrganizationMember[]
     projects Project[]
 
-    createdAt  DateTime  @default(now())
-    modifiedAt DateTime  @updatedAt
-    deletedAt  DateTime?
+    createdAt               DateTime                 @default(now())
+    modifiedAt              DateTime                 @updatedAt
+    deletedAt               DateTime?
+    organizationInvitations OrganizationInvitation[]
 
     @@map("organization")
 }
@@ -67,7 +68,7 @@ model Project {
     ownerId        String
 
     organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-    owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+    owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Restrict)
     members      ProjectMember[]
     tasks        Task[]
 
@@ -87,13 +88,13 @@ model Task {
     position    Int
     assigneeId  String?
     projectId   String
-    createdById String
+    createdById String?
     dueDate     DateTime?
 
-    assignee  User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
-    project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    createdBy User      @relation("TaskCreator", fields: [createdById], references: [id])
-    comments  Comment[]
+    assignee  User?         @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+    project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    createdBy User?         @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+    comments  TaskComment[]
 
     createdAt  DateTime  @default(now())
     modifiedAt DateTime  @updatedAt
@@ -102,20 +103,39 @@ model Task {
     @@map("task")
 }
 
-model Comment {
+model TaskComment {
     id       String @id @default(uuid(7)) @db.VarChar(36)
     content  String
     taskId   String
     authorId String
 
     task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-    author User @relation(fields: [authorId], references: [id])
+    author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
     createdAt  DateTime  @default(now())
     modifiedAt DateTime  @updatedAt
     deletedAt  DateTime?
 
-    @@map("comment")
+    @@map("task_comment")
+}
+
+model OrganizationInvitation {
+    id             String           @id @default(uuid(7)) @db.VarChar(36)
+    organizationId String
+    email          String
+    role           OrganizationRole
+    status         InvitationStatus
+    userId         String?
+
+    user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+    organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    createdAt  DateTime  @default(now())
+    modifiedAt DateTime  @updatedAt
+    deletedAt  DateTime?
+
+    @@unique([email, organizationId])
+    @@map("organization_invitation")
 }
 
 model OrganizationMember {
@@ -125,7 +145,7 @@ model OrganizationMember {
     role           OrganizationRole
     joinedAt       DateTime         @default(now())
 
-    user         User         @relation(fields: [userId], references: [id])
+    user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
     organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
     createdAt  DateTime  @default(now())
@@ -142,11 +162,11 @@ model ProjectMember {
     projectId String
     role      ProjectRole
     addedAt   DateTime    @default(now())
-    addedById String
+    addedById String?
 
-    user    User    @relation("ProjectMember", fields: [userId], references: [id])
+    user    User    @relation("ProjectMember", fields: [userId], references: [id], onDelete: Cascade)
     project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    addedBy User    @relation("ProjectMemberAdder", fields: [addedById], references: [id])
+    addedBy User?   @relation("ProjectMemberAdder", fields: [addedById], references: [id], onDelete: SetNull)
 
     createdAt  DateTime  @default(now())
     modifiedAt DateTime  @updatedAt
@@ -168,6 +188,12 @@ enum TaskStatus {
     IN_PROGRESS
     IN_REVIEW
     DONE
+}
+
+enum InvitationStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
 }
 
 enum Priority {

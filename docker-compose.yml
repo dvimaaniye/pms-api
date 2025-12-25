@@ -6,6 +6,7 @@ services:
     container_name: pms-node
     ports:
       - "3000:3000"
+      - "5555:5555" # for prisma studio
     volumes:
       - ./:/home/app/
     tty: true

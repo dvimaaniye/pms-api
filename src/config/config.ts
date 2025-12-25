@@ -23,7 +23,7 @@ export class Config {
 	// public readonly REDIS_PASSWORD!: string;
 	//
 	@IsString()
-	public readonly DATABASE_URL!: string;
+	public readonly APP_DATABASE_URL!: string;
 
 	@IsString()
 	public readonly SESSION_TTL!: StringValue;

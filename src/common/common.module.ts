@@ -13,6 +13,8 @@ import * as ms from 'ms';
 import { PrismaModule } from 'nestjs-prisma';
 import * as passport from 'passport';
 
+import { config } from '@/config/config.module';
+
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import { prismaExceptionFilter } from './filters/prisma-exception.filter';
 // import { LoggingInterceptor } from './interceptors/logging.interceptor';
@@ -26,7 +28,12 @@ import { RedisModule } from './redis/redis.module';
 @Global()
 @Module({
 	imports: [
-		PrismaModule.forRoot({ isGlobal: true }),
+		PrismaModule.forRoot({
+			isGlobal: true,
+			prismaServiceOptions: {
+				prismaOptions: { datasourceUrl: config.APP_DATABASE_URL },
+			},
+		}),
 		RedisModule,
 		ThrottlerModule.forRoot([
 			{
