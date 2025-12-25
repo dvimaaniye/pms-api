@@ -1,7 +1,7 @@
 import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 
 import { RedisStore } from 'connect-redis';
-import { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import * as session from 'express-session';
 import { SessionOptions } from 'express-session';
 import * as ms from 'ms';

@@ -1,24 +1,24 @@
 import { Transform, Type } from 'class-transformer';
 import { IsAlpha, IsEmail, IsOptional, MinLength } from 'class-validator';
 
-const lowercase = (str: string) => str.toLowerCase();
+import { toLowerCase } from '@/common/transformers';
 
 export class PatchUserDto {
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
+	@Transform(toLowerCase)
 	@IsEmail()
 	@IsOptional()
 	email?: string;
 
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
+	@Transform(toLowerCase)
 	@MinLength(1)
 	@IsAlpha()
 	@IsOptional()
 	firstName?: string;
 
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
+	@Transform(toLowerCase)
 	@MinLength(1)
 	@IsAlpha()
 	@IsOptional()

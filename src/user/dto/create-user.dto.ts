@@ -5,29 +5,31 @@ import {
 	IsEmail,
 	IsNotEmpty,
 	IsOptional,
+	MaxLength,
 	MinLength,
 } from 'class-validator';
 
+import { toLowerCase } from '@/common/transformers';
 import {
 	HasLowercase,
 	HasNumber,
 	HasSymbol,
 	HasUppercase,
-} from '@/user/validator';
-
-const lowercase = (str: string) => str.toLowerCase();
+} from '@/common/validators';
 
 export class CreateUserDto {
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
+	@Transform(toLowerCase)
 	@IsEmail()
-	email: string;
+	@MaxLength(254)
+	email!: string;
 
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
+	@Transform(toLowerCase)
 	@IsAlphanumeric()
-	@MinLength(4)
-	username: string;
+	@MinLength(3)
+	@MaxLength(64)
+	username!: string;
 
 	@Type(() => String)
 	@IsNotEmpty()
@@ -36,17 +38,16 @@ export class CreateUserDto {
 	@HasUppercase()
 	@HasNumber()
 	@HasSymbol()
-	password: string;
+	password!: string;
 
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
 	@MinLength(1)
+	@MaxLength(255)
 	@IsAlpha()
-	firstName: string;
+	firstName!: string;
 
 	@Type(() => String)
-	@Transform(({ value }) => lowercase(value as string))
-	@MinLength(1)
+	@MaxLength(255)
 	@IsAlpha()
 	@IsOptional()
 	lastName?: string;

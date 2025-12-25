@@ -20,6 +20,8 @@ import {
 	UserDeletedEvent,
 } from './event/user-deleted.event';
 import { PatchUserDto } from './types';
+import { PatchUserDto } from './dto';
+import { PublicUser } from './types';
 import { UserService } from './user.service';
 
 @Controller('users')

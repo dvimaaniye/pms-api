@@ -6,7 +6,8 @@ import { PrismaService } from 'nestjs-prisma';
 
 import { HashService } from '@/hash/hash.service';
 
-import { CreateUserDto, PublicUser } from './types';
+import { CreateUserDto } from './dto';
+import { PublicUser } from './types';
 
 @Injectable()
 export class UserService {

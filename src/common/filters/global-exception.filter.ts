@@ -6,7 +6,7 @@ import {
 	HttpStatus,
 } from '@nestjs/common';
 
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 interface ErrorResponse {
 	timestamp: string;

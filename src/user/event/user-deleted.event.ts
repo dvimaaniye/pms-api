@@ -1,7 +1,7 @@
-import { Request } from 'express';
+import type { PublicUser } from '../types';
 
 export const USER_DELETED_EVENT = 'user.deleted';
 
 export class UserDeletedEvent {
-	constructor(public readonly request: Request) {}
+	constructor(public readonly user: PublicUser) {}
 }

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Request } from 'express';
+import type { Request } from 'express';
 
 import { config } from '@/config/config.module';
 

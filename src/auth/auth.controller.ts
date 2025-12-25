@@ -11,15 +11,15 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 as EventEmitter } from '@nestjs/event-emitter';
 
-import { Request } from 'express';
+import type { Request } from 'express';
 
 import { GuestOnlyApiGuard } from '@/common/guards/guest-only-api.guard';
 import { SessionAuthGuard } from '@/common/guards/session-auth.guard';
+import { CreateUserDto } from '@/user/dto';
 import {
 	USER_CREATED_EVENT,
 	UserCreatedEvent,
 } from '@/user/event/user-created.event';
-import { CreateUserDto } from '@/user/types';
 import { UserService } from '@/user/user.service';
 
 import { AuthService, EmailVerificationPayload } from './auth.service';

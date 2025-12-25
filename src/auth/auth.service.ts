@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Request } from 'express';
+import type { Request } from 'express';
 
 import { config } from '@/config/config.module';
 import { HashService } from '@/hash/hash.service';
-import { CreateUserDto, PublicUser } from '@/user/types';
+import { CreateUserDto } from '@/user/dto';
+import { PublicUser } from '@/user/types';
 import { UserService } from '@/user/user.service';
 
 export interface EmailVerificationPayload {
