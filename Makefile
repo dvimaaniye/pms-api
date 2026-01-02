@@ -1,15 +1,12 @@
-.PHONY: setup up down shell
+.PHONY: setup up down shell run-test test-down
 
 setup:
 	@if [ ! -f .env ]; then cp .env.example .env; echo "Copied .env.example to .env"; fi
-	@docker compose up -d --build
-	@echo "Services started. Running initial setup..."
-	@docker compose exec -T node /bin/sh /home/app/docker/node/setup.sh
+	@docker compose build
 	@echo "Setup done."
 
 up:
-	@docker compose up -d
-	@docker compose exec node sh -c "npm run start:dev"
+	@docker compose up node --watch --no-log-prefix
 
 down:
 	@docker compose down
@@ -17,3 +14,14 @@ down:
 s ?= node
 shell:
 	@docker compose exec $(s) sh
+
+test_compose_file = compose.test.yml
+run-test:
+	@if [ ! -f .env ]; then cp .env.example .env; echo "Copied .env.example to .env"; fi
+	@docker compose -f $(test_compose_file) up node --no-log-prefix --exit-code-from node; \
+	EXIT_CODE=$$?; \
+	docker compose -f $(test_compose_file) down; \
+	exit $$EXIT_CODE
+
+test-down:
+	@docker compose -f $(test_compose_file) down

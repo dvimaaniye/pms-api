@@ -1,0 +1,34 @@
+# Version control
+.git/
+.github/
+.gitignore
+
+# Dependencies (installed in container)
+node_modules/
+
+# Build outputs (built in container)
+dist/
+
+# Environment files
+.env*
+
+# Development files
+.vscode/
+*.log
+coverage/
+.eslintcache
+
+# Docker files
+docker/**/data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+
+# Deployment configs
+compose.yml
+Taskfile.yml

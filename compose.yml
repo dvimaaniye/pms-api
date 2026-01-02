@@ -1,0 +1,98 @@
+services:
+  node:
+    build:
+      context: .
+      dockerfile: ./docker/node/node.Dockerfile
+      target: development
+    container_name: pms-dev-node
+    ports:
+      - "3000:3000"
+      - "5555:5555" # For Prisma Studio
+    env_file: ./.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      FORCE_COLOR: 1
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: sync
+          path: ./prisma
+          target: /app/prisma
+          ignore:
+            - migrations/
+        - action: sync+exec
+          path: ./prisma/migrations
+          target: /app/prisma/migrations
+          exec:
+            command: npm run prisma:dev
+        - action: sync+exec
+          path: ./package.json
+          target: /app/package.json
+          exec:
+            command: npm i
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailhog:
+        condition: service_started
+
+  mysql:
+    build:
+      context: .
+      dockerfile: ./docker/mysql/mysql.Dockerfile
+    container_name: pms-dev-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "127.0.0.1",
+          "-u",
+          "root",
+          "-p$$MYSQL_ROOT_PASSWORD",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    restart: always
+
+  redis:
+    image: redis:8.2.0-alpine
+    container_name: pms-dev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./docker/redis/data:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    restart: always
+    command:
+      [
+        "redis-server",
+        "/usr/local/etc/redis/redis.conf",
+        "--requirepass ${REDIS_PASSWORD}",
+      ]
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: pms-dev-mailhog
+    ports:
+      - "1025:1025" # SMTP Port
+      - "8025:8025" # HTTP Port (The UI)
+    restart: always

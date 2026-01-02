@@ -1,30 +1,29 @@
+name: pms-test
+
 services:
   node:
     build:
-      context: ./docker/node/
-      dockerfile: node.Dockerfile
-    container_name: pms-node
-    ports:
-      - "3000:3000"
-      - "5555:5555" # for prisma studio
-    volumes:
-      - ./:/home/app/
-    tty: true
+      context: .
+      dockerfile: ./docker/node/node.Dockerfile
+      target: test
+    container_name: pms-test-node
+    env_file: ./.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      FORCE_COLOR: 1
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_started
+      mailhog:
+        condition: service_started
 
   mysql:
     build:
-      context: ./docker/mysql/
-      dockerfile: mysql.Dockerfile
-    container_name: pms-mysql
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./docker/mysql/data:/var/lib/mysql
+      context: .
+      dockerfile: ./docker/mysql/mysql.Dockerfile
+    container_name: pms-test-mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -37,24 +36,21 @@ services:
           "mysqladmin",
           "ping",
           "-h",
-          "localhost",
+          "127.0.0.1",
           "-u",
           "root",
           "-p$$MYSQL_ROOT_PASSWORD",
         ]
       interval: 2s
-      timeout: 20s
-      retries: 10
+      timeout: 5s
+      retries: 20
     restart: always
 
   redis:
     image: redis:8.2.0-alpine
-    container_name: pms-redis
-    ports:
-      - "6379:6379"
+    container_name: pms-test-redis
     volumes:
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./docker/redis/data:/data
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     restart: always
@@ -64,3 +60,8 @@ services:
         "/usr/local/etc/redis/redis.conf",
         "--requirepass ${REDIS_PASSWORD}",
       ]
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: pms-test-mailhog
+    restart: always
