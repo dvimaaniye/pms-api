@@ -5,6 +5,7 @@ import {
 	IsEmail,
 	IsNotEmpty,
 	IsOptional,
+	Matches,
 	MaxLength,
 	MinLength,
 } from 'class-validator';
@@ -26,7 +27,9 @@ export class CreateUserDto {
 
 	@Type(() => String)
 	@Transform(toLowerCase)
-	@IsAlphanumeric()
+	@Matches(/^[A-Za-z0-9_]+$/, {
+		message: 'Username can contain only letters, numbers, and underscores',
+	})
 	@MinLength(3)
 	@MaxLength(64)
 	username!: string;

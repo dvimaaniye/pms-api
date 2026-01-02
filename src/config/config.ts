@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { IsString } from 'class-validator';
+import { IsPort, IsString } from 'class-validator';
 import { StringValue } from 'ms';
 
 @Injectable()
@@ -25,4 +25,19 @@ export class Config {
 
 	@IsString()
 	public readonly EMAIL_VERIFICATION_TOKEN_SECRET!: string;
+
+	@IsString()
+	public readonly MAIL_HOST!: string;
+
+	@IsPort()
+	public readonly MAIL_PORT!: number;
+
+	@IsString()
+	public readonly MAIL_USER!: string;
+
+	@IsString()
+	public readonly MAIL_PASSWORD!: string;
+
+	@IsString()
+	public readonly MAIL_FROM!: string;
 }

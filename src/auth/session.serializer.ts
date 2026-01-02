@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
 
 import type { DoneCallback } from 'passport';
@@ -21,7 +21,7 @@ export class SessionSerializer extends PassportSerializer {
 	async deserializeUser(id: PublicUser['id'], done: DoneCallback) {
 		const user = await this.userService.findOne(id);
 		if (!user) {
-			done({ message: 'User not found' }, null);
+			done(new NotFoundException('User not found'), null);
 			return;
 		}
 		done(null, user);

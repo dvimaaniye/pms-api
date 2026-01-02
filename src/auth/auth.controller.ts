@@ -4,6 +4,8 @@ import {
 	ConflictException,
 	Controller,
 	Get,
+	HttpCode,
+	HttpStatus,
 	InternalServerErrorException,
 	Post,
 	Req,
@@ -45,6 +47,7 @@ export class AuthController {
 	}
 
 	@Post('/sign-in')
+	@HttpCode(HttpStatus.OK)
 	@UseGuards(GuestOnlyApiGuard, LocalAuthGuard)
 	signIn(@Req() req: Request) {
 		if (!req.user?.id) {
@@ -55,12 +58,14 @@ export class AuthController {
 	}
 
 	@Post('/sign-out')
+	@HttpCode(HttpStatus.OK)
 	@UseGuards(SessionAuthGuard)
 	signOut(@Req() req: Request) {
 		return this.authService.signOut(req);
 	}
 
-	@Post('/email-verification')
+	@Post('/email/verify')
+	@HttpCode(HttpStatus.OK)
 	@UseGuards(SessionAuthGuard)
 	async sendVerificationEmail(@Req() req: Request) {
 		if (req.user!.isEmailVerified) {
@@ -77,7 +82,7 @@ export class AuthController {
 		return { message: 'Verification email sent successfully' };
 	}
 
-	@Get('/email-verification')
+	@Get('/email/verify')
 	@UseGuards(EmailVerificationGuard)
 	async emailVerification(@Req() req: Request) {
 		const payload = req['emailVerification'] as EmailVerificationPayload;

@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { MailerService } from '@nestjs-modules/mailer';
+
+import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import type { Request } from 'express';
+import * as ms from 'ms';
 
 import { config } from '@/config/config.module';
 import { HashService } from '@/hash/hash.service';
@@ -17,6 +20,7 @@ export interface EmailVerificationPayload {
 @Injectable()
 export class AuthService {
 	constructor(
+		private readonly mailer: MailerService,
 		private readonly userService: UserService,
 		private readonly hashService: HashService,
 		private readonly jwtService: JwtService,
@@ -49,7 +53,13 @@ export class AuthService {
 		return userWithoutPassword;
 	}
 
-	register(user: CreateUserDto): Promise<PublicUser> {
+	async register(user: CreateUserDto): Promise<PublicUser> {
+		const existingUser = await this.userService.findOneWhere({
+			email: user.email,
+		});
+		if (existingUser) {
+			throw new ConflictException('User with same email already exists');
+		}
 		return this.userService.create(user);
 	}
 
@@ -84,11 +94,20 @@ export class AuthService {
 	}
 
 	async sendEmailVerificationLink(payload: EmailVerificationPayload) {
-		const jwtToken = await this.jwtService.signAsync(payload, {
+		const jwtToken = await this.generateEmailVerificationToken(payload);
+
+		console.log(`/email-verification?t=${jwtToken}`);
+		await this.mailer.sendMail({
+			to: payload.email,
+			subject: 'Email Verification for PMS API',
+			html: `Hi! <br/>Click the following link to verify your email address: <br/> <a href='/email/verify?t=${jwtToken}'>Click to verify your email</a> <br/>Link valid for ${ms(ms(config.EMAIL_VERIFICATION_TOKEN_TTL), { long: true })}`,
+		});
+	}
+
+	generateEmailVerificationToken(payload: any) {
+		return this.jwtService.signAsync(payload, {
 			secret: config.EMAIL_VERIFICATION_TOKEN_SECRET,
 			expiresIn: config.EMAIL_VERIFICATION_TOKEN_TTL,
 		});
-
-		console.log(`/email-verification?t=${jwtToken}`);
 	}
 }

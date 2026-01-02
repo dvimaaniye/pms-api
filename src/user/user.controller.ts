@@ -3,9 +3,13 @@ import {
 	Controller,
 	Delete,
 	Get,
+	HttpException,
 	Patch,
+	Req,
 	UseGuards,
 } from '@nestjs/common';
+
+import type { Request } from 'express';
 
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { SessionAuthGuard } from '@/common/guards/session-auth.guard';
@@ -31,8 +35,16 @@ export class UserController {
 	}
 
 	@Delete('/me')
-	async deleteMe(@CurrentUser() user: PublicUser) {
+	async deleteMe(@CurrentUser() user: PublicUser, @Req() req: Request) {
 		await this.userService.delete(user.id);
+		req.logout({}, (err) => {
+			if (err) {
+				throw new HttpException(
+					'Error logging out after account deletion',
+					500,
+				);
+			}
+		});
 		return { message: 'User deleted successfully' };
 	}
 

@@ -1,3 +1,5 @@
+import { MailerModule } from '@nestjs-modules/mailer';
+
 import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_PIPE, HttpAdapterHost } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -21,6 +23,20 @@ import { RedisModule } from './redis/redis.module';
 @Global()
 @Module({
 	imports: [
+		MailerModule.forRoot({
+			transport: {
+				host: config.MAIL_HOST,
+				port: config.MAIL_PORT,
+				secure: config.NODE_ENV === 'production',
+				auth: {
+					user: config.MAIL_USER,
+					pass: config.MAIL_PASSWORD,
+				},
+			},
+			defaults: {
+				from: config.MAIL_FROM,
+			},
+		}),
 		PrismaModule.forRoot({
 			isGlobal: true,
 			prismaServiceOptions: {
@@ -55,7 +71,7 @@ import { RedisModule } from './redis/redis.module';
 			useClass: GlobalThrottlerGuard,
 		},
 	],
-	exports: [RedisModule, PrismaModule],
+	exports: [MailerModule, RedisModule, PrismaModule],
 })
 export class CommonModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
