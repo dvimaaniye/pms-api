@@ -1,40 +1,62 @@
+ARG NODE_VERSION=22-alpine3.21
 # ========================================
 # Base Image
 # ========================================
-ARG NODE_VERSION=22-alpine3.21
-
 FROM node:${NODE_VERSION} AS base
 
 WORKDIR /app
 
-RUN chown -R node:node /app
-
-# ========================================
-# Dependencies Stage
-# ========================================
-FROM base AS deps
-
-COPY package*.json .npmrc ./
-
-# Install production dependencies
-RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-	npm ci --omit=dev && \
-	npm cache clean --force
-
-RUN chown -R node:node /app
+RUN chown node:node /app
 
 # ========================================
 # Build Dependencies Stage
 # ========================================
 FROM base AS build-deps
 
+COPY --chown=node:node package*.json .npmrc ./
+
 USER node
+
+# Install all dependencies with build optimizations
+RUN --mount=type=cache,target=/home/node/.npm,sharing=locked,uid=1000,gid=1000 \
+	npm ci --no-audit --no-fund && \
+	npm cache clean --force
+
+# ========================================
+# Development Stage
+# ========================================
+FROM build-deps AS development
+
+ENV NODE_ENV=development \
+	NPM_CONFIG_LOGLEVEL=warn
+
+
+COPY --chown=node:node . .
+
+COPY --chown=node:node ./docker/node/entrypoint.sh .
+
+USER node
+
+RUN chmod +x entrypoint.sh
+
+# 3000 for Node App, 5555 for Prisma Studio
+EXPOSE 3000 5555
+
+ENTRYPOINT [ "./entrypoint.sh" ]
+CMD ["npm", "run", "start:dev"]
+
+# ========================================
+# Dependencies Stage
+# ========================================
+FROM base AS deps
 
 COPY --chown=node:node package*.json .npmrc ./
 
-# Install all dependencies with build optimizations
-RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-	npm ci --no-audit --no-fund && \
+USER node
+
+# Install production dependencies
+RUN --mount=type=cache,target=/home/node/.npm,sharing=locked,uid=1000,gid=1000 \
+	npm ci --omit=dev && \
 	npm cache clean --force
 
 # ========================================
@@ -47,34 +69,11 @@ COPY --chown=node:node . .
 RUN npm run build
 
 # ========================================
-# Development Stage
-# ========================================
-FROM build-deps AS development
-
-ENV NODE_ENV=development \
-	NPM_CONFIG_LOGLEVEL=warn
-
-USER node
-
-COPY --chown=node:node . .
-
-COPY ./docker/node/entrypoint.sh .
-
-EXPOSE 3000
-# For Prisma Studio
-EXPOSE 5555
-
-ENTRYPOINT [ "./entrypoint.sh" ]
-CMD ["npm", "run", "start:dev"]
-
-# ========================================
 # Production Stage
 # ========================================
-FROM node:${NODE_VERSION} AS production
+FROM base AS production
 
 WORKDIR /app
-
-RUN chown -R node:node /app
 
 ENV NODE_ENV=production \
 	NODE_OPTIONS="--max-old-space-size=256 --no-warnings"
@@ -98,9 +97,11 @@ ENV NODE_ENV=test \
 	CI=true
 
 COPY --chown=node:node . .
-COPY ./docker/node/entrypoint.sh .
+COPY --chown=node:node ./docker/node/entrypoint.sh .
 
 USER node
+
+RUN chmod +x entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 CMD ["npm", "run", "test:e2e"]
