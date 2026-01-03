@@ -8,15 +8,14 @@ services:
     ports:
       - "3000:3000"
       - "5555:5555" # For Prisma Studio
-    env_file: ./.env
+    volumes:
+      - ./src:/app/src:ro
+      - ./.env:/app/.env
     environment:
       DATABASE_URL: ${DATABASE_URL_DOCKER}
       FORCE_COLOR: 1
     develop:
       watch:
-        - action: sync
-          path: ./src
-          target: /app/src
         - action: sync
           path: ./prisma
           target: /app/prisma
