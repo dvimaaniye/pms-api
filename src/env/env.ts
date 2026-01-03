@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { IsBoolean, IsEnum, IsPort, IsString } from 'class-validator';
 import { StringValue } from 'ms';
 
+import { IsMsStringValue } from '@/common/validators';
+
 enum NODE_ENV {
 	DEV = 'development',
 	PROD = 'production',
@@ -21,13 +23,13 @@ export class EnvSchema {
 	@IsString()
 	public readonly APP_DATABASE_URL!: string;
 
-	@IsString()
+	@IsMsStringValue()
 	public readonly SESSION_TTL!: StringValue;
 
 	@IsString()
 	public readonly SESSION_SECRET!: string;
 
-	@IsString()
+	@IsMsStringValue()
 	public readonly EMAIL_VERIFICATION_TOKEN_TTL!: StringValue;
 
 	@IsString()
