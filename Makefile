@@ -2,11 +2,11 @@
 
 setup:
 	@if [ ! -f .env ]; then cp .env.example .env; echo "Copied .env.example to .env"; fi
-	@docker compose build
+	@docker compose build $(ARGS)
 	@echo "Setup done."
 
 up:
-	@docker compose up node --watch --no-log-prefix
+	@docker compose up node $(ARGS) --watch --no-log-prefix
 
 down:
 	@docker compose down
