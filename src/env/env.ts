@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 
-import { IsPort, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsPort, IsString } from 'class-validator';
 import { StringValue } from 'ms';
 
+enum NODE_ENV {
+	DEV = 'development',
+	PROD = 'production',
+	TEST = 'test',
+	STAGING = 'staging',
+}
+
 @Injectable()
-export class Config {
-	@IsString()
-	public readonly NODE_ENV!: string;
+export class EnvSchema {
+	@IsEnum(NODE_ENV)
+	public readonly NODE_ENV!: NODE_ENV;
 
 	@IsString()
 	public readonly REDIS_URL!: string;
@@ -40,4 +47,24 @@ export class Config {
 
 	@IsString()
 	public readonly MAIL_FROM!: string;
+
+	@IsBoolean()
+	public get isDev() {
+		return this.NODE_ENV === NODE_ENV.DEV;
+	}
+
+	@IsBoolean()
+	public get isProd() {
+		return this.NODE_ENV === NODE_ENV.PROD;
+	}
+
+	@IsBoolean()
+	public get isTest() {
+		return this.NODE_ENV === NODE_ENV.TEST;
+	}
+
+	@IsBoolean()
+	public get isStaging() {
+		return this.NODE_ENV === NODE_ENV.STAGING;
+	}
 }

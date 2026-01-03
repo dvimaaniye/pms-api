@@ -4,7 +4,7 @@ import { RedisStore } from 'connect-redis';
 import * as ms from 'ms';
 import { RedisClientType, createClient } from 'redis';
 
-import { config } from '@/config/config.module';
+import { env } from '@/env/env.module';
 
 import {
 	REDIS_CACHE_CLIENT,
@@ -59,7 +59,7 @@ export const redisStoreProviders: Provider[] = [
 			return new RedisStore({
 				client: sessionClient,
 				prefix: 'ses:',
-				ttl: Math.floor(ms(config.SESSION_TTL) / 1000),
+				ttl: Math.floor(ms(env.SESSION_TTL) / 1000),
 				// disableTouch: false,
 			});
 		},

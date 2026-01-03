@@ -7,7 +7,7 @@ import { SessionOptions } from 'express-session';
 import * as ms from 'ms';
 
 import { REDIS_SESSION_STORE } from '@/common/redis/redis.config';
-import { config } from '@/config/config.module';
+import { env } from '@/env/env.module';
 
 @Injectable()
 export class SessionMiddleware implements NestMiddleware {
@@ -15,14 +15,14 @@ export class SessionMiddleware implements NestMiddleware {
 
 	private options: SessionOptions = {
 		name: 'sid',
-		secret: config.SESSION_SECRET,
+		secret: env.SESSION_SECRET,
 		resave: false,
 		saveUninitialized: false,
 		cookie: {
-			secure: config.NODE_ENV === 'production',
+			secure: env.isProd,
 			httpOnly: true,
 			sameSite: true,
-			maxAge: ms(config.SESSION_TTL),
+			maxAge: ms(env.SESSION_TTL),
 		},
 	};
 

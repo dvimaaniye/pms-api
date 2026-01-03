@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 
 import type { Request } from 'express';
 
-import { config } from '@/config/config.module';
+import { env } from '@/env/env.module';
 
 import { EmailVerificationPayload } from './auth.service';
 
@@ -29,7 +29,7 @@ export class EmailVerificationGuard implements CanActivate {
 		try {
 			const payload =
 				await this.jwtService.verifyAsync<EmailVerificationPayload>(token, {
-					secret: config.EMAIL_VERIFICATION_TOKEN_SECRET,
+					secret: env.EMAIL_VERIFICATION_TOKEN_SECRET,
 				});
 
 			request['emailVerification'] = payload;

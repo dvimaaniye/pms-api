@@ -9,7 +9,7 @@ import * as ms from 'ms';
 import { PrismaModule } from 'nestjs-prisma';
 import * as passport from 'passport';
 
-import { config } from '@/config/config.module';
+import { env } from '@/env/env.module';
 
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import { prismaExceptionFilter } from './filters/prisma-exception.filter';
@@ -25,22 +25,22 @@ import { RedisModule } from './redis/redis.module';
 	imports: [
 		MailerModule.forRoot({
 			transport: {
-				host: config.MAIL_HOST,
-				port: config.MAIL_PORT,
-				secure: config.NODE_ENV === 'production',
+				host: env.MAIL_HOST,
+				port: env.MAIL_PORT,
+				secure: env.isProd,
 				auth: {
-					user: config.MAIL_USER,
-					pass: config.MAIL_PASSWORD,
+					user: env.MAIL_USER,
+					pass: env.MAIL_PASSWORD,
 				},
 			},
 			defaults: {
-				from: config.MAIL_FROM,
+				from: env.MAIL_FROM,
 			},
 		}),
 		PrismaModule.forRoot({
 			isGlobal: true,
 			prismaServiceOptions: {
-				prismaOptions: { datasourceUrl: config.APP_DATABASE_URL },
+				prismaOptions: { datasourceUrl: env.APP_DATABASE_URL },
 			},
 		}),
 		RedisModule,

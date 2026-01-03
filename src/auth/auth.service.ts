@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import * as ms from 'ms';
 
-import { config } from '@/config/config.module';
+import { env } from '@/env/env.module';
 import { HashService } from '@/hash/hash.service';
 import { CreateUserDto } from '@/user/dto';
 import { PublicUser } from '@/user/types';
@@ -100,14 +100,14 @@ export class AuthService {
 		await this.mailer.sendMail({
 			to: payload.email,
 			subject: 'Email Verification for PMS API',
-			html: `Hi! <br/>Click the following link to verify your email address: <br/> <a href='/email/verify?t=${jwtToken}'>Click to verify your email</a> <br/>Link valid for ${ms(ms(config.EMAIL_VERIFICATION_TOKEN_TTL), { long: true })}`,
+			html: `Hi! <br/>Click the following link to verify your email address: <br/> <a href='/email/verify?t=${jwtToken}'>Click to verify your email</a> <br/>Link valid for ${ms(ms(env.EMAIL_VERIFICATION_TOKEN_TTL), { long: true })}`,
 		});
 	}
 
 	generateEmailVerificationToken(payload: any) {
 		return this.jwtService.signAsync(payload, {
-			secret: config.EMAIL_VERIFICATION_TOKEN_SECRET,
-			expiresIn: config.EMAIL_VERIFICATION_TOKEN_TTL,
+			secret: env.EMAIL_VERIFICATION_TOKEN_SECRET,
+			expiresIn: env.EMAIL_VERIFICATION_TOKEN_TTL,
 		});
 	}
 }

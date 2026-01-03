@@ -1,9 +1,9 @@
 import { RedisClientOptions } from 'redis';
 
-import { config } from '@/config/config.module';
+import { env } from '@/env/env.module';
 
 export const baseRedisConnectionOptions: RedisClientOptions = {
-	url: config.REDIS_URL,
+	url: env.REDIS_URL,
 };
 
 export const REDIS_SESSION_CLIENT = 'REDIS_SESSION_CLIENT';

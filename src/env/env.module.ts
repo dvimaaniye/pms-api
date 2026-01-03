@@ -7,15 +7,15 @@ import {
 	selectConfig,
 } from 'nest-typed-config';
 
-import { Config } from './config';
+import { EnvSchema } from './env';
 
 const options: DotenvLoaderOptions = {
 	expandVariables: true,
 };
 
-export const ConfigModule: DynamicModule = TypedConfigModule.forRoot({
-	schema: Config,
+export const EnvModule: DynamicModule = TypedConfigModule.forRoot({
+	schema: EnvSchema,
 	load: dotenvLoader(options),
 });
 
-export const config = selectConfig(ConfigModule, Config);
+export const env = selectConfig(EnvModule, EnvSchema);
