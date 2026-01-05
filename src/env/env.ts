@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { IsBoolean, IsEnum, IsPort, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsPort, IsString, IsUrl } from 'class-validator';
 import { StringValue } from 'ms';
 
 import { IsMsStringValue } from '@/common/validators';
@@ -16,6 +16,14 @@ enum NODE_ENV {
 export class EnvSchema {
 	@IsEnum(NODE_ENV)
 	public readonly NODE_ENV!: NODE_ENV;
+
+	@IsUrl(
+		(() => ({
+			protocols: ['http', 'https'],
+			require_tld: process.env.NODE_ENV === NODE_ENV.PROD,
+		}))(),
+	)
+	public readonly BASE_URL!: string;
 
 	@IsString()
 	public readonly REDIS_URL!: string;

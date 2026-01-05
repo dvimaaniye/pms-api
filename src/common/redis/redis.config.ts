@@ -9,6 +9,7 @@ export const baseRedisConnectionOptions: RedisClientOptions = {
 export const REDIS_SESSION_CLIENT = 'REDIS_SESSION_CLIENT';
 export const REDIS_QUEUE_CLIENT = 'REDIS_QUEUE_CLIENT';
 export const REDIS_CACHE_CLIENT = 'REDIS_CACHE_CLIENT';
+export const REDIS_EMAIL_TOKEN_CLIENT = 'REDIS_EMAIL_TOKEN_CLIENT';
 
 export const REDIS_SESSION_STORE = 'REDIS_SESSION_STORE';
 
@@ -16,12 +17,14 @@ export enum REDIS_DATABASE {
 	SESSION = 0,
 	QUEUE = 1,
 	CACHE = 2,
+	EMAIL_TOKEN = 3,
 }
 
 export type RedisClientType =
 	| typeof REDIS_SESSION_CLIENT
 	| typeof REDIS_CACHE_CLIENT
-	| typeof REDIS_QUEUE_CLIENT;
+	| typeof REDIS_QUEUE_CLIENT
+	| typeof REDIS_EMAIL_TOKEN_CLIENT;
 
 export const connectionOptions: Record<RedisClientType, RedisClientOptions> = {
 	REDIS_SESSION_CLIENT: {
@@ -37,5 +40,10 @@ export const connectionOptions: Record<RedisClientType, RedisClientOptions> = {
 	REDIS_CACHE_CLIENT: {
 		...baseRedisConnectionOptions,
 		database: REDIS_DATABASE.CACHE,
+	},
+
+	REDIS_EMAIL_TOKEN_CLIENT: {
+		...baseRedisConnectionOptions,
+		database: REDIS_DATABASE.EMAIL_TOKEN,
 	},
 };

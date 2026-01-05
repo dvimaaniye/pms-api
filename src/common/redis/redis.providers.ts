@@ -8,6 +8,7 @@ import { env } from '@/env/env.module';
 
 import {
 	REDIS_CACHE_CLIENT,
+	REDIS_EMAIL_TOKEN_CLIENT,
 	REDIS_QUEUE_CLIENT,
 	REDIS_SESSION_CLIENT,
 	REDIS_SESSION_STORE,
@@ -41,8 +42,18 @@ export const redisClientProviders: Provider[] = [
 			return c;
 		},
 	},
+
+	{
+		provide: REDIS_EMAIL_TOKEN_CLIENT,
+		useFactory: () => {
+			const c = createClient(connectionOptions.REDIS_EMAIL_TOKEN_CLIENT);
+			c.connect().catch(console.error);
+			return c;
+		},
+	},
 ];
 
+// exclusively needed by express-session for interacting with sessions
 export const redisStoreProviders: Provider[] = [
 	{
 		provide: REDIS_SESSION_STORE,

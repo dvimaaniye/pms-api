@@ -1,11 +1,13 @@
 import { MailerService } from '@nestjs-modules/mailer';
 
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import { RedisClientType } from '@redis/client';
 import type { Request } from 'express';
 import * as ms from 'ms';
 
+import { REDIS_EMAIL_TOKEN_CLIENT } from '@/common/redis/redis.config';
 import { env } from '@/env/env.module';
 import { HashService } from '@/hash/hash.service';
 import { CreateUserDto } from '@/user/dto';
@@ -24,6 +26,8 @@ export class AuthService {
 		private readonly userService: UserService,
 		private readonly hashService: HashService,
 		private readonly jwtService: JwtService,
+		@Inject(REDIS_EMAIL_TOKEN_CLIENT)
+		private readonly emailTokenRedisService: RedisClientType,
 	) {}
 
 	async validateUser(
@@ -96,12 +100,25 @@ export class AuthService {
 	async sendEmailVerificationLink(payload: EmailVerificationPayload) {
 		const jwtToken = await this.generateEmailVerificationToken(payload);
 
+		const verificationLink = `${env.BASE_URL}/email/verify?t=${jwtToken}`;
+		const linkExpiry = ms(ms(env.EMAIL_VERIFICATION_TOKEN_TTL), { long: true });
 		console.log(`/email-verification?t=${jwtToken}`);
-		await this.mailer.sendMail({
-			to: payload.email,
-			subject: 'Email Verification for PMS API',
-			html: `Hi! <br/>Click the following link to verify your email address: <br/> <a href='/email/verify?t=${jwtToken}'>Click to verify your email</a> <br/>Link valid for ${ms(ms(env.EMAIL_VERIFICATION_TOKEN_TTL), { long: true })}`,
-		});
+
+		await Promise.all([
+			this.emailTokenRedisService.set(payload.email, jwtToken, {
+				expiration: {
+					type: 'EX',
+					value: ms(env.EMAIL_VERIFICATION_TOKEN_TTL) / 1000,
+				},
+			}),
+			this.mailer.sendMail({
+				to: payload.email,
+				subject: 'Email Verification for PMS API',
+				html: `Hi! <br/>Click the following link to verify your email address: <br/> <a href='${verificationLink}'>Click to verify your email</a> <br/>Link valid for ${linkExpiry}`,
+			}),
+		]);
+
+		console.log('email sent!');
 	}
 
 	generateEmailVerificationToken(payload: any) {
