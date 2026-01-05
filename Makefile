@@ -18,6 +18,7 @@ shell:
 test_compose_file = compose.test.yml
 run-test:
 	@if [ ! -f .env ]; then cp .env.example .env; echo "Copied .env.example to .env"; fi
+	@docker compose -f $(test_compose_file) build
 	@docker compose -f $(test_compose_file) up node --no-log-prefix --exit-code-from node; \
 	EXIT_CODE=$$?; \
 	docker compose -f $(test_compose_file) down; \

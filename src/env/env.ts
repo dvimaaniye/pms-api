@@ -58,6 +58,9 @@ export class EnvSchema {
 	@IsString()
 	public readonly MAIL_FROM!: string;
 
+	@IsPort()
+	public readonly MAIL_API_PORT!: number;
+
 	@IsBoolean()
 	public get isDev() {
 		return this.NODE_ENV === NODE_ENV.DEV;
